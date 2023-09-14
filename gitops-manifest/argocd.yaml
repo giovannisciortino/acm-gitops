@@ -1,0 +1,155 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ArgoCD
+metadata:
+  finalizers:
+  - argoproj.io/finalizer
+  name: openshift-gitops
+  namespace: openshift-gitops
+spec:
+  applicationSet:
+    resources:
+      limits:
+        cpu: "2"
+        memory: 2Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+  controller:
+    appSync: 300m
+    env:
+      - name: ARGOCD_GRPC_MAX_SIZE_MB
+        value: "400"
+    parallelismLimit: 20
+    processors:
+      operation: 100
+      status: 250
+    resources:
+      limits:
+        cpu: "1"
+        memory: 50Mi
+      requests:
+        cpu: "1"
+        memory: 50Mi
+    sharding:
+      enabled: true
+      replicas: 3
+  dex:
+    openShiftOAuth: true
+    resources:
+      limits:
+        cpu: 500m
+        memory: 256Mi
+      requests:
+        cpu: 25m
+        memory: 12Mi
+  grafana:
+    enabled: false
+    ingress:
+      enabled: false
+    resources:
+      limits:
+        cpu: 500m
+        memory: 256Mi
+      requests:
+        cpu: 25m
+        memory: 12Mi
+    route:
+      enabled: false
+  ha:
+    enabled: true
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 25m
+        memory: 25Mi
+  initialSSHKnownHosts: {}
+  prometheus:
+    enabled: true
+    ingress:
+      enabled: false
+    route:
+      enabled: false
+  rbac:
+    defaultPolicy: role:readonly
+    policy: |
+      p, role:apps-admin, applications, create, */*, allow
+      p, role:apps-admin, applications, update, */*, allow
+      p, role:apps-admin, applications, delete, */*, allow
+      p, role:apps-admin, applications, sync, */*, allow
+      p, role:apps-admin, applications, override, */*, allow
+      p, role:apps-admin, applications, action/*, */*, allow
+      p, role:apps-admin, certificates, create, *, allow
+      p, role:apps-admin, certificates, update, *, allow
+      p, role:apps-admin, certificates, delete, *, allow
+      p, role:apps-admin, clusters, get, *, allow
+      p, role:apps-admin, repositories, create, *, allow
+      p, role:apps-admin, repositories, update, *, allow
+      p, role:apps-admin, repositories, delete, *, allow
+      p, role:apps-admin, repositories, get, *, allow
+      p, role:apps-admin, gpgkeys, create, *, allow
+      p, role:apps-admin, gpgkeys, delete, *, allow
+      g, system:cluster-admins, role:admin
+      g, gitopsadmins, role:apps-admin
+    scopes: '[groups]'
+  redis:
+    resources:
+      limits:
+        cpu: 1250m
+        memory: 4096Mi
+      requests:
+        cpu: 50m
+        memory: 204Mi
+  repo:
+    replicas: 3
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 2048Mi
+      requests:
+        cpu: 100m
+        memory: 76Mi
+  resourceCustomizations: |
+    networking.k8s.io/Ingress:
+      health.lua: |
+        hs = {}
+        hs.status = "Healthy"
+        return hs
+  resourceExclusions: |
+    - apiGroups:
+      - tekton.dev
+      clusters:
+      - '*'
+      kinds:
+      - TaskRun
+      - PipelineRun
+  server:
+    autoscale:
+      enabled: false
+#      hpa:
+#        maxReplicas: 5
+#        minReplicas: 1
+#        scaleTargetRef:
+#          apiVersion: apps/v1
+#          kind: Deployment
+#          name: openshift-gitops-server
+    grpc:
+      ingress:
+        enabled: false
+    ingress:
+      enabled: false
+    replicas: 3
+    resources:
+      limits:
+        cpu: 500m
+        memory: 4096Mi
+      requests:
+        cpu: 125m
+        memory: 1048Mi
+    route:
+      enabled: true
+    service:
+      type: ""
+  tls:
+    ca: {}
