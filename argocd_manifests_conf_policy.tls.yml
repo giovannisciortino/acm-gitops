@@ -1,0 +1,99 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: acm-certificates
+spec:
+  finalizers:
+  - kubernetes
+
+---
+
+apiVersion: v1
+data:
+  tls.crt: dGVzdDEyMwo=
+  tls.key: dGVzdDEyMwo=
+kind: Secret
+metadata:
+  name: example-secret
+  namespace: acm-certificates
+type: kubernetes.io/tls
+
+
+---
+
+
+apiVersion: cluster.open-cluster-management.io/v1beta2
+kind: ManagedClusterSetBinding
+metadata:
+  name: global
+  namespace: acm-certificates
+spec:
+  clusterSet: global
+
+---
+
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: acm-certificates-placement
+  namespace: acm-certificates
+spec:
+  clusterSets:
+  - global
+  predicates:
+  - requiredClusterSelector:
+      labelSelector:
+        matchExpressions:
+        - key: name
+          operator: In
+          values:
+          - "managed-cluster"
+
+---
+
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: acm-certificates-placement
+  namespace: acm-certificates
+placementRef:
+  apiGroup: cluster.open-cluster-management.io
+  kind: Placement
+  name: acm-certificates-placement
+subjects:
+- apiGroup: policy.open-cluster-management.io
+  kind: Policy
+  name: acm-certificates-policy
+
+---
+
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: acm-certificates-policy
+  namespace: acm-certificates
+spec:
+  disabled: false
+  policy-templates:
+  - objectDefinition:
+      apiVersion: policy.open-cluster-management.io/v1
+      kind: ConfigurationPolicy
+      metadata:
+        name: configurationpolicy-acm-certificates
+      spec:
+        object-templates:
+        - complianceType: musthave
+          objectDefinition:            
+            apiVersion: v1
+            kind: Secret
+            metadata:
+              name: example-secret
+              namespace: default
+            type: kubernetes.io/tls
+            data: # '{{hub copySecretData "acm-certificates" "example-secret" hub}}'
+              tls.crt: '{{hub fromSecret "acm-certificates" "example-secret" "tls.crt" hub}}' 
+              tls.key: '{{hub fromSecret "acm-certificates" "example-secret" "tls.key" hub}}' 
+        remediationAction: enforce
+        severity: medium
+  remediationAction: enforce
+
