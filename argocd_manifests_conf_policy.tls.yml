@@ -5,6 +5,15 @@ metadata:
 spec:
   finalizers:
   - kubernetes
+---
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: acm-certificates-target
+spec:
+  finalizers:
+  - kubernetes
 
 ---
 
@@ -15,6 +24,18 @@ data:
 kind: Secret
 metadata:
   name: example-secret
+  namespace: acm-certificates
+type: kubernetes.io/tls
+
+---
+
+apiVersion: v1
+data:
+  tls.crt: dGVzdHRlc3QK
+  tls.key: dGVzdHRlc3QK
+kind: Secret
+metadata:
+  name: example-secret-local-cluster
   namespace: acm-certificates
 type: kubernetes.io/tls
 
@@ -47,7 +68,7 @@ spec:
         - key: name
           operator: In
           values:
-          - "managed-cluster"
+          - "local-cluster"
   tolerations:
   - key: cluster.open-cluster-management.io/unreachable
     operator: Exists
@@ -94,11 +115,22 @@ spec:
             kind: Secret
             metadata:
               name: example-secret
-              namespace: default
+              namespace: acm-certificates-target
             type: kubernetes.io/tls
             data: # '{{hub copySecretData "acm-certificates" "example-secret" hub}}'
               tls.crt: '{{hub fromSecret "acm-certificates" "example-secret" "tls.crt" hub}}' 
               tls.key: '{{hub fromSecret "acm-certificates" "example-secret" "tls.key" hub}}' 
+        - complianceType: musthave
+          objectDefinition:            
+            apiVersion: v1
+            kind: Secret
+            metadata:
+              name: '{{ printf "example-secret-2-%s" (fromClusterClaim "name") }}' # '{{hub printf "example-secret-%s" .ManagedClusterName hub}}'
+              namespace: acm-certificates-target
+            type: kubernetes.io/tls
+            data: # '{{hub copySecretData "acm-certificates" (printf "example-secret-%s" .ManagedClusterName) hub}}'
+              tls.crt: '{{hub fromSecret "acm-certificates" (printf "example-secret-%s" .ManagedClusterName) "tls.crt" hub}}' 
+              tls.key: '{{hub fromSecret "acm-certificates" (printf "example-secret-%s" .ManagedClusterName) "tls.key" hub}}' 
         remediationAction: enforce
         severity: medium
   remediationAction: enforce
