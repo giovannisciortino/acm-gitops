@@ -25,8 +25,8 @@ spec:
       status: 250
     resources:
       limits:
-        cpu: "1"
-        memory: 50Mi
+        cpu: "2"
+        memory: 1500Mi
       requests:
         cpu: "1"
         memory: 50Mi
