@@ -5,6 +5,8 @@ metadata:
   - argoproj.io/finalizer
   name: openshift-gitops
   namespace: openshift-gitops
+  annotations:
+    apps.open-cluster-management.io/do-not-delete: 'true'
 spec:
   applicationSet:
     resources:
