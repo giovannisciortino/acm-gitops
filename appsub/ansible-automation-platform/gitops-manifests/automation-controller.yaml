@@ -11,6 +11,7 @@ spec:
   task_privileged: false
   projects_persistence: false
   admin_user: admin
+  admin_password: password
   postgres_storage_requirements:
     requests: 
       storage: 100Gi
