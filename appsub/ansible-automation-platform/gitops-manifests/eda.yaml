@@ -1,0 +1,25 @@
+apiVersion: eda.ansible.com/v1alpha1
+kind: EDA
+metadata:
+  name: event-driven-ansible
+  namespace: aap
+spec:
+  route_tls_termination_mechanism: Edge
+  ingress_type: Route
+  no_log: true
+  image_pull_policy: IfNotPresent
+  ui:
+    replicas: 1
+  set_self_labels: true
+  api:
+    gunicorn_workers: 2
+    replicas: 1
+  database:
+    storage_requirements:
+      requests:
+        storage: 20Gi
+  redis:
+    replicas: 1
+  admin_user: admin
+  worker:
+    replicas: 2

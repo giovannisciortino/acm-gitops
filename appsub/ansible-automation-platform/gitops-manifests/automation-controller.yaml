@@ -1,0 +1,16 @@
+apiVersion: automationcontroller.ansible.com/v1beta1
+kind: AutomationController
+metadata:
+  name: automation-controller
+  namespace: aap
+spec:
+  replicas: 2
+  ingress_type: Route
+  no_log: true
+  auto_upgrade: false
+  task_privileged: false
+  projects_persistence: false
+  admin_user: admin
+  postgres_storage_requirements:
+    requests: 
+      storage: 100Gi
