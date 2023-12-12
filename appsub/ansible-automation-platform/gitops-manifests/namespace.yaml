@@ -3,4 +3,6 @@ kind: Namespace
 metadata:
   labels:
     openshift.io/cluster-monitoring: "true"
+  annotations:
+    apps.open-cluster-management.io/do-not-delete: 'true'
   name: aap 

@@ -3,6 +3,8 @@ kind: AutomationController
 metadata:
   name: automation-controller
   namespace: aap
+  annotations: 
+    apps.open-cluster-management.io/do-not-delete: 'true'
 spec:
   replicas: 2
   ingress_type: Route
